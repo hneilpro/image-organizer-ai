@@ -13,8 +13,10 @@ RUN apt-get update \
 WORKDIR /app
 
 COPY requirements.txt .
+# torch AND torchvision together from the CPU index, so PyPI's torchvision
+# never drags in the giant CUDA torch build.
 RUN pip install --upgrade pip \
- && pip install torch --index-url https://download.pytorch.org/whl/cpu \
+ && pip install torch torchvision --index-url https://download.pytorch.org/whl/cpu \
  && pip install -r requirements.txt
 
 COPY . .
