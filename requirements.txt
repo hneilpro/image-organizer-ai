@@ -1,0 +1,6 @@
+# torch is installed separately (CPU-only) in the Dockerfile to keep the
+# image small; pip will see it as already satisfied here.
+ultralytics>=8.2,<9
+flask>=3.0
+pillow>=10.0
+pillow-heif>=0.13

@@ -1,0 +1,20 @@
+# Mount the folders you want to organize under ./photos
+# (each subfolder shows up in the web UI's folder picker).
+# Example: ./photos/vacation  ->  browse to /data/vacation in the UI.
+services:
+  image-organizer:
+    build: .
+    ports:
+      - "5000:5000"
+    volumes:
+      - ./photos:/data
+      # - /mnt/my-photos:/data/photos2   # add more folders like this,
+      # then extend ORGANIZER_ROOTS below with :/data/photos2
+    environment:
+      - ORGANIZER_ROOTS=/data
+    # uncomment to also use the bigger, more accurate model by default:
+    # (it downloads on first use)
+    # - DEFAULT_MODEL=yolo11s.pt
+
+volumes:
+  organizer-data:

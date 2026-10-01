@@ -1,0 +1,99 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Image Organizer AI</title>
+<link rel="stylesheet" href="/static/style.css">
+</head>
+<body>
+<header>
+  <h1>🗂️ Image Organizer <span class="ai">AI</span></h1>
+  <p class="sub">Detects <b>people</b> → <b>animals</b> → <b>objects</b> (in that priority) and sorts your photos. YOLO11n, runs on CPU.</p>
+</header>
+
+<main>
+  <!-- 1. pick folder -->
+  <section class="card">
+    <h2>1 · Pick a folder</h2>
+    <div class="browser">
+      <div class="browser-bar">
+        <button id="btn-up" title="Up one level">⬆ Up</button>
+        <code id="cwd">…</code>
+      </div>
+      <ul id="dir-list"></ul>
+    </div>
+    <div class="row">
+      <button id="btn-scan" class="secondary">🔍 Count images</button>
+      <span id="scan-result" class="muted"></span>
+    </div>
+  </section>
+
+  <!-- 2. options -->
+  <section class="card">
+    <h2>2 · Options</h2>
+    <div class="grid">
+      <label class="check"><input type="checkbox" id="opt-recursive" checked> Include subfolders</label>
+      <label class="check"><input type="checkbox" id="opt-dryrun" checked> <b>Dry run first</b> — preview only, move nothing</label>
+      <div class="field">
+        <span>Action</span>
+        <label><input type="radio" name="mode" value="move" checked> Move</label>
+        <label><input type="radio" name="mode" value="copy"> Copy</label>
+      </div>
+      <div class="field">
+        <span>Model</span>
+        <select id="opt-model"></select>
+      </div>
+      <div class="field slider">
+        <span>Confidence <b id="conf-val">0.50</b></span>
+        <input type="range" id="opt-conf" min="0.25" max="0.9" step="0.05" value="0.5">
+      </div>
+    </div>
+    <div class="row">
+      <button id="btn-start" class="primary" disabled>▶ Start organizing</button>
+      <span class="muted">Selected: <code id="selected">none</code></span>
+    </div>
+  </section>
+
+  <!-- 3. progress / results -->
+  <section class="card" id="progress-card" hidden>
+    <h2>3 · Progress</h2>
+    <div class="bar"><div id="bar-fill"></div></div>
+    <p id="progress-text" class="muted"></p>
+    <div id="results" hidden>
+      <h3>Results</h3>
+      <div id="counts" class="counts"></div>
+      <div id="plan-wrap" hidden>
+        <h4>Planned moves <span class="muted">(dry run — nothing was moved)</span></h4>
+        <table id="plan-table"><thead><tr><th>File</th><th>→ Folder</th><th>Detected</th></tr></thead><tbody></tbody></table>
+        <div class="row">
+          <button id="btn-real" class="primary">✅ Looks good — run it for real</button>
+        </div>
+      </div>
+      <div id="errors" hidden>
+        <h4>Skipped files</h4>
+        <ul id="error-list"></ul>
+      </div>
+      <div class="row" id="undo-row" hidden>
+        <button id="btn-undo" class="secondary">↩ Undo this run</button>
+        <span id="undo-result" class="muted"></span>
+      </div>
+    </div>
+  </section>
+
+  <!-- 4. undo history -->
+  <section class="card">
+    <h2>↩ Undo history</h2>
+    <p class="muted">Every real run is logged and can be reversed.</p>
+    <ul id="log-list"></ul>
+    <div class="row"><button id="btn-refresh-logs" class="secondary">Refresh</button></div>
+  </section>
+</main>
+
+<footer>
+  <p class="muted">Tip: in Docker, mount the folders you want to organize (see <code>docker-compose.yml</code>) — the picker browses mounted volumes. Run locally with <code>python app.py</code> to browse your real filesystem.</p>
+</footer>
+
+<script src="/static/app.js"></script>
+</body>
+</html>
