@@ -68,6 +68,28 @@ def available_models(model_dir: str | Path | None = None) -> list[dict]:
     return out
 
 
+def _warmup_model(model):
+    """One tiny prediction up front so a broken torch/torchvision install
+    fails fast with an actionable error — instead of every file being
+    flagged 'unreadable' one by one (seen 2026-10-01: 'operator
+    torchvision::nms does not exist' on a mismatched pair)."""
+    from PIL import Image
+    try:
+        model.predict(Image.new("RGB", (32, 32)), verbose=False)
+    except Exception as e:
+        raise RuntimeError(
+            "The image model failed to start — this is an environment "
+            "problem, not your photos.\n"
+            "If the error mentions 'torchvision::nms', your torch/torchvision "
+            "install is mismatched. The classic cause: installing torch from "
+            "the CPU index, then letting pip pull torchvision (plus its own "
+            "pinned torch build) from PyPI. Reinstall them as a matched pair:\n"
+            "  pip install --force-reinstall torch torchvision "
+            "--index-url https://download.pytorch.org/whl/cpu\n"
+            f"Original error: {e}"
+        ) from e
+
+
 # ---------------------------------------------------------------- scan ----
 
 def scan_images(root: str | Path, recursive: bool = True,
@@ -181,6 +203,7 @@ def organize(source: str | Path,
     dest = Path(dest) if dest else source
 
     model = get_model(model_name, model_dir)
+    _warmup_model(model)  # fail fast on a broken torch/torchvision install
 
     # never re-scan our own output folders on repeat runs
     exclude = {dest / c for c in CATEGORIES}

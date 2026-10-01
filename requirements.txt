@@ -1,5 +1,9 @@
-# torch is installed separately (CPU-only) in the Dockerfile to keep the
-# image small; pip will see it as already satisfied here.
+# torch AND torchvision are installed separately (as a matched pair, CPU-only)
+# BEFORE this file, in one step:
+#   pip install torch torchvision --index-url https://download.pytorch.org/whl/cpu
+# If pip resolves torchvision from PyPI on its own, it drags in its pinned
+# CUDA torch build and the pair can end up ABI-mismatched, which surfaces as
+# "operator torchvision::nms does not exist" on every image.
 ultralytics>=8.2,<9
 flask>=3.0
 pillow>=10.0

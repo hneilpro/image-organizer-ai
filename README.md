@@ -35,7 +35,7 @@ docker compose up --build
 ## Quickstart (local, no Docker)
 
 ```bash
-pip install torch --index-url https://download.pytorch.org/whl/cpu  # CPU torch
+pip install torch torchvision --index-url https://download.pytorch.org/whl/cpu  # matched CPU pair, one step
 pip install -r requirements.txt
 python app.py   # -> http://localhost:5000, browses your real filesystem
 ```
@@ -83,6 +83,27 @@ undo("./data/logs", summary["log_file"].split("/")[-1])
 pip install pytest
 pytest tests/ -v
 ```
+
+## Troubleshooting
+
+**Every file errors with `unreadable: operator torchvision::nms does not exist`**
+— your torch and torchvision are an ABI-mismatched pair. The usual cause:
+installing torch from the CPU index, then letting `pip install -r
+requirements.txt` resolve torchvision from PyPI, which drags in its own
+pinned (CUDA) torch build. Reinstall them as a matched pair:
+
+```bash
+pip install --force-reinstall torch torchvision --index-url https://download.pytorch.org/whl/cpu
+```
+
+then restart the app and re-run. The app now does a warmup prediction before
+touching any files, so this fails fast with the hint above instead of
+flagging each file.
+
+**Want GPU speed?** On an NVIDIA card you can skip the CPU index entirely —
+`pip install torch torchvision` from default PyPI ships CUDA support and
+classifies ~10x faster per photo. (In WSL2 this works if the Windows NVIDIA
+driver is reasonably recent.)
 
 ## License
 

@@ -125,6 +125,26 @@ def test_rerun_skips_own_output_folders(workdir):
     assert second["total"] == 0  # already-sorted images are not re-scanned
 
 
+def test_broken_torch_install_fails_fast_with_actionable_error(workdir, monkeypatch):
+    """2026-10-01: Harish's box had a torch/torchvision ABI mismatch
+    ('operator torchvision::nms does not exist') and every file was flagged
+    'unreadable' instead of one clear error. The warmup must raise before
+    any file is touched."""
+
+    class BrokenModel:
+        def predict(self, *a, **k):
+            raise RuntimeError("operator torchvision::nms does not exist")
+
+    monkeypatch.setattr(organizer, "get_model", lambda *a, **k: BrokenModel())
+    with pytest.raises(RuntimeError) as exc:
+        organizer.organize(workdir, model_dir=MODEL_DIR)
+    msg = str(exc.value)
+    assert "torchvision::nms" in msg
+    assert "force-reinstall" in msg
+    # nothing was touched: files still in place, no per-file errors possible
+    assert (workdir / "person.jpg").exists()
+
+
 def test_list_logs_roundtrip(workdir):
     log_dir = workdir / "logs"
     summary = organizer.organize(workdir, mode="move", model_dir=MODEL_DIR, log_dir=log_dir)
